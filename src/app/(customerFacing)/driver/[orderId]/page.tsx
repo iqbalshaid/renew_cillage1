@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
@@ -11,16 +11,7 @@ const DynamicMap = dynamic(() => import("./DriverMap"), {
   loading: () => <p>Loading map...</p>,
 });
 
-interface DriverPageParams {
-  orderId: string;
-}
-
-export default function DriverDashboard() {
-  const params = useParams<DriverPageParams>();
-  const orderId = params?.orderId;
-
-  
- interface Customer {
+interface Customer {
   id: string;
   latitude: number;
   longitude: number;
@@ -29,31 +20,40 @@ export default function DriverDashboard() {
   eta?: string;
 }
 
-const [customers, setCustomers] = useState<Customer[]>([]);
+export default function DriverDashboard() {
+  const params = useParams();
+  const orderId = params?.orderId as string | undefined;
+
+  
+
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [totalDistance, setTotalDistance] = useState("calculating...");
   const [totalTime, setTotalTime] = useState("calculating...");
-  const [connectionStatus, setConnectionStatus] = useState<"connecting"|"connected"|"error"|"disconnected">("connecting");
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "connected" | "error" | "disconnected"
+  >("connecting");
   const eventSourceRef = useRef<EventSource | null>(null);
-  // const customerIdRef = useRef<string>(Math.random().toString(36).substring(2));
-
+// If orderId is missing, don't render UI but still keep hooks safe
+  
   // Track driver location
   useEffect(() => {
+     if (!orderId) return; 
     let watchId: number | null = null;
-    
+
     if (navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
-          
+
           try {
-            await fetch('/api/driver-location', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+            await fetch("/api/driver-location", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 orderId,
                 latitude,
-                longitude
-              })
+                longitude,
+              }),
             });
           } catch (error) {
             console.error("Failed to update driver location:", error);
@@ -72,29 +72,29 @@ const [customers, setCustomers] = useState<Customer[]>([]);
   // Connect to SSE for customer updates
   useEffect(() => {
     setConnectionStatus("connecting");
-    
+
     const eventSource = new EventSource(`/api/driver-events/${orderId}`);
     eventSourceRef.current = eventSource;
 
-    eventSource.addEventListener('initial', (event) => {
+    eventSource.addEventListener("initial", (event) => {
       setConnectionStatus("connected");
       const data = JSON.parse(event.data);
       setCustomers(data.customers || []);
     });
 
-    eventSource.addEventListener('customer-update', (event) => {
+    eventSource.addEventListener("customer-update", (event) => {
       const { customer } = JSON.parse(event.data);
-      setCustomers(prev => {
-        const existing = prev.find(c => c.id === customer.id);
-        return existing 
-          ? prev.map(c => c.id === customer.id ? customer : c)
+      setCustomers((prev) => {
+        const existing = prev.find((c) => c.id === customer.id);
+        return existing
+          ? prev.map((c) => (c.id === customer.id ? customer : c))
           : [...prev, customer];
       });
     });
 
-    eventSource.addEventListener('customer-disconnected', (event) => {
+    eventSource.addEventListener("customer-disconnected", (event) => {
       const { customerId } = JSON.parse(event.data);
-      setCustomers(prev => prev.filter(c => c.id !== customerId));
+      setCustomers((prev) => prev.filter((c) => c.id !== customerId));
     });
 
     eventSource.onerror = () => {
@@ -116,11 +116,15 @@ const [customers, setCustomers] = useState<Customer[]>([]);
             <CardTitle className="flex items-center gap-2">
               <Bike className="w-6 h-6" />
               Driver Dashboard - Order #{orderId}
-              <span className={`ml-2 text-sm font-normal ${
-                connectionStatus === "connected" ? "text-green-500" :
-                connectionStatus === "connecting" ? "text-yellow-500" :
-                "text-red-500"
-              }`}>
+              <span
+                className={`ml-2 text-sm font-normal ${
+                  connectionStatus === "connected"
+                    ? "text-green-500"
+                    : connectionStatus === "connecting"
+                    ? "text-yellow-500"
+                    : "text-red-500"
+                }`}
+              >
                 ({connectionStatus})
               </span>
             </CardTitle>
@@ -155,9 +159,9 @@ const [customers, setCustomers] = useState<Customer[]>([]);
                 </CardContent>
               </Card>
             </div>
-            
+
             <div className="h-[500px] rounded-lg overflow-hidden border">
-              <DynamicMap 
+              <DynamicMap
                 customers={customers}
                 onRouteCalculated={(distance, time) => {
                   setTotalDistance(distance);
@@ -173,12 +177,15 @@ const [customers, setCustomers] = useState<Customer[]>([]);
               </h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {customers.map((customer, i) => (
-                  <div key={customer.id} className="p-3 border-b hover:bg-gray-50 rounded">
+                  <div
+                    key={customer.id}
+                    className="p-3 border-b hover:bg-gray-50 rounded"
+                  >
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium flex items-center gap-2">
                           <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm">
-                            {i+1}
+                            {i + 1}
                           </span>
                           {customer.address || "Customer Location"}
                         </p>
