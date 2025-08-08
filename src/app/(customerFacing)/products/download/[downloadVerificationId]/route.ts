@@ -4,7 +4,7 @@ import fs from "fs/promises";
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ downloadVerificationId: string }> }
+  context: { params: Promise<{ downloadVerificationId: string }>  }
 ) {
   const { downloadVerificationId } = await context.params;
 
