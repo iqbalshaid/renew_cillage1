@@ -1,6 +1,7 @@
 import db from "@/db/db";
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
+export const dynamic = "force-dynamic"; // ✅ forces runtime execution only
 
 export async function GET(
   req: NextRequest,

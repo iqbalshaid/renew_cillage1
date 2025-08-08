@@ -1,6 +1,7 @@
 import { NextResponse,NextRequest } from "next/server";
 import db from "@/db/db";
 import razorpay from "@/lib/razorpay";
+export const dynamic = "force-dynamic"; // ✅ forces runtime execution only
 
 export async function POST(
    req: NextRequest,

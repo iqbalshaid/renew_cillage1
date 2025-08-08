@@ -1,5 +1,6 @@
 // F:\totally_new_cillage\renew_cillage\src\app\api\route\route.ts
 import { NextResponse } from "next/server"
+export const dynamic = "force-dynamic"; // ✅ forces runtime execution only
 
 export async function POST(request: Request) {
   const { start, end } = await request.json()
